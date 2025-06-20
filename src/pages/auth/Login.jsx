@@ -1,9 +1,62 @@
-import React from 'react'
+import { useForm } from "react-hook-form";
+import FormInput from "../../components/form/FormInput";
+import { createAlert } from "../../utils/createAlert";
+import axios from "axios";
+import Button from "../../components/form/Button";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { loginSchema, registerSchema } from "../../utils/validator";
+import { actionLogin, actionRegister } from "../../api/auth";
+import useAuthStore from "../../store/authStore";
 
 function Login() {
+  //JS
+  //zustand
+  const user = useAuthStore((state) => state.user);
+  console.log(user);
+
+  const { handleSubmit, register, formState, reset } = useForm({
+    resolver: yupResolver(loginSchema),
+  });
+  const { isSubmitting, errors } = formState;
+
+  const hdlSubmit = async (value) => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    try {
+      const res = await actionLogin(value);
+      createAlert("success", res.data.message);
+      // console.log(res);
+      reset();
+    } catch (error) {
+      console.log(error);
+      createAlert("info", error.response?.data?.message);
+    }
+  };
+
   return (
-    <div>Login</div>
-  )
+    <div className="flex w-full h-full justify-end">
+      <div className="border w-64 h-3/5 p-4 m-4 rounded-md">
+        <h1 className="font-bold text-center pb-3 text-2xl text-rose-400">
+          Login
+        </h1>
+
+        {/* {from} */}
+        <form onSubmit={handleSubmit(hdlSubmit)}>
+          <div className="flex gap-4 flex-col">
+            <FormInput register={register} name="email" errors={errors} />
+            <FormInput
+              register={register}
+              name="password"
+              errors={errors}
+              type="password"
+            />
+          </div>
+
+          <Button isSubmitting={isSubmitting} Label={"Login"} />
+        </form>
+      </div>
+    </div>
+  );
 }
 
-export default Login
+export default Login;
